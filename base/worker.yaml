@@ -1,0 +1,34 @@
+# il ne sert qu'au déploiment et il n'expose rien donc pas besoin de service.
+# Pas de sonde : le worker n'expose ni port HTTP ni port TCP, et n'offre aucune commande de diagnostic.
+# Pour en avoir une, il faudrait modifier l'application, par exemple :
+#  - exposer un petit endpoint HTTP /healthz (→ httpGet),
+#  - ou écrire régulièrement un fichier "heartbeat" (ex. /tmp/alive) à chaque boucle de traitement,
+#    vérifié par une sonde exec (ex. : find /tmp/alive -mmin -1 | grep -q .).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  labels:
+    app.kubernetes.io/name: worker
+    app.kubernetes.io/part-of: voting-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: worker
+        app.kubernetes.io/part-of: voting-app
+    spec:
+      containers:
+      - name: worker
+        image: dockersamples/examplevotingapp_worker
+        resources:
+          requests:
+            cpu: 50m
+            memory: 96Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
